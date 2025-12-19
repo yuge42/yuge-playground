@@ -11,5 +11,22 @@ fn main() {
             }),
             ..Default::default()
         }))
+        .add_systems(Startup, setup)
         .run();
+}
+
+fn setup(mut commands: Commands) {
+    commands.spawn((
+        Camera2d,
+        Transform::from_xyz(-150.0, 100.0, 0.0),
+    ));
+
+    commands.spawn((
+        Transform::from_xyz(-150.0, 100.0, 0.0),
+        Sprite {
+            color: Color::WHITE,
+            custom_size: Some(Vec2::new(100.0, 100.0)),
+            ..Default::default()
+        },
+    ));
 }
