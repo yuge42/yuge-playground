@@ -12,7 +12,7 @@ fn main() {
             ..Default::default()
         }))
         .add_systems(Startup, setup)
-        .add_systems(Update, move_sprite)
+        .add_systems(FixedUpdate, apply_velocity)
         .run();
 }
 
@@ -29,6 +29,7 @@ fn setup(mut commands: Commands) {
             custom_size: Some(Vec2::new(100.0, 100.0)),
             ..Default::default()
         },
+        Velocity(Vec2::new(1.0, 0.0)),
     ));
 
     commands.spawn((
@@ -38,11 +39,15 @@ fn setup(mut commands: Commands) {
             custom_size: Some(Vec2::new(50.0, 150.0)),
             ..Default::default()
         },
+        Velocity(Vec2::new(0.5, 0.0))
     ));
 }
 
-fn move_sprite(mut query: Query<&mut Transform, With<Sprite>>) {
-    for mut transform in &mut query {
-        transform.translation.x += 1.0;
+fn apply_velocity(mut query: Query<(&mut Transform, &Velocity)>) {
+    for (mut transform, velocity) in &mut query {
+        transform.translation += velocity.0.extend(0.0);
     }
 }
+
+#[derive(Component)]
+struct Velocity(Vec2);
