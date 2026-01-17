@@ -11,8 +11,11 @@ fn main() {
             }),
             ..Default::default()
         }))
+        .insert_resource(Gravity(0.05))
         .add_systems(Startup, setup)
-        .add_systems(FixedUpdate, apply_velocity)
+        .add_systems(
+            FixedUpdate,
+            (apply_gravity, apply_velocity).chain())
         .run();
 }
 
@@ -29,7 +32,7 @@ fn setup(mut commands: Commands) {
             custom_size: Some(Vec2::new(100.0, 100.0)),
             ..Default::default()
         },
-        Velocity(Vec2::new(1.0, 0.0)),
+        Velocity(Vec2::new(1.0, 5.0)),
     ));
 
     commands.spawn((
@@ -39,7 +42,7 @@ fn setup(mut commands: Commands) {
             custom_size: Some(Vec2::new(50.0, 150.0)),
             ..Default::default()
         },
-        Velocity(Vec2::new(0.5, 0.0))
+        Velocity(Vec2::new(0.5, 5.0))
     ));
 }
 
@@ -49,5 +52,17 @@ fn apply_velocity(mut query: Query<(&mut Transform, &Velocity)>) {
     }
 }
 
+fn apply_gravity(
+    gravity: Res<Gravity>,
+    mut query: Query<&mut Velocity>,
+) {
+    for mut velocity in &mut query {
+        velocity.0.y -= gravity.0;
+    }
+}
+
 #[derive(Component)]
 struct Velocity(Vec2);
+
+#[derive(Resource)]
+struct Gravity(f32);
