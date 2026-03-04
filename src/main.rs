@@ -13,9 +13,14 @@ fn main() {
         }))
         .insert_resource(Gravity(0.05))
         .add_systems(Startup, setup)
+        .add_systems(Update, handle_input)
         .add_systems(
             FixedUpdate,
-            (apply_gravity, apply_velocity).chain())
+            (
+                apply_intent_to_velocity,
+                apply_gravity,
+                apply_velocity
+            ).chain())
         .run();
 }
 
@@ -42,8 +47,34 @@ fn setup(mut commands: Commands) {
             custom_size: Some(Vec2::new(50.0, 150.0)),
             ..Default::default()
         },
-        Velocity(Vec2::new(0.5, 5.0))
+        Velocity(Vec2::new(0.5, 5.0)),
+        MoveIntent::default(),
     ));
+}
+
+fn handle_input(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut query: Query<&mut MoveIntent>,
+) {
+    let mut axis_x = 0.0;
+    if keyboard.pressed(KeyCode::ArrowLeft) {
+        axis_x -= 1.0;
+    }
+    if keyboard.pressed(KeyCode::ArrowRight) {
+        axis_x += 1.0;
+    }
+
+    for mut intent in &mut query {
+        intent.axis_x = axis_x;
+    }
+}
+
+fn apply_intent_to_velocity(
+    mut query: Query<(&MoveIntent, &mut Velocity)>,
+) {
+    for (intent, mut velocity) in &mut query {
+        velocity.0.x = intent.axis_x * 2.0;
+    }
 }
 
 fn apply_velocity(mut query: Query<(&mut Transform, &Velocity)>) {
@@ -66,3 +97,8 @@ struct Velocity(Vec2);
 
 #[derive(Resource)]
 struct Gravity(f32);
+
+#[derive(Component, Default)]
+struct MoveIntent {
+    axis_x: f32,
+}
